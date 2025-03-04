@@ -37,10 +37,33 @@ DEBUG = True
 
 ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS', default=['localhost'])
 
+# DATABASES = {
+#     'default': env.db('DATABASE_URL'),
+# }
+# DATABASES['default']['ENGINE'] = 'django.db.backends.postgresql' # might not be necessary
+
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.postgresql",
+#         "OPTIONS": {
+#             "service": "my_service",
+#             "passfile": ".my_pgpass",
+#         },
+#     }
+# }
+
 DATABASES = {
-    'default': env.db('DATABASE_URL'),
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "OPTIONS": {
+            "service": "my_service",
+            "passfile": os.path.expanduser("~/.pgpass"),
+        },
+    }
 }
-DATABASES['default']['ENGINE'] = 'django.db.backends.postgresql' # might not be necessary
+
+
+
 
 
 # Application definition
@@ -89,11 +112,16 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+# poopy databases thing
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': env.db('DATABASE_URL'),
 }
 
 

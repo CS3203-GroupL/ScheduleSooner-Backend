@@ -2,10 +2,10 @@ from django.db import models
 
 class Course(models.Model):
     num = models.IntegerField(null=True, blank=True)  # Optional integer field
-    crn = models.CharField(max_length=10)  # CRN can be a string as it can start with zeros
-    subject = models.CharField(max_length=10)
-    course = models.CharField(max_length=10)
-    section = models.CharField(max_length=10)
+    crn = models.CharField(max_length=20)  # CRN can be a string as it can start with zeros
+    subject = models.CharField(max_length=20)
+    course = models.CharField(max_length=20)
+    section = models.CharField(max_length=30)
     title = models.CharField(max_length=255)
     instructor = models.CharField(max_length=255)
     dates = models.CharField(max_length=255)  # Could be a date range in the future
