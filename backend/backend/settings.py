@@ -30,7 +30,7 @@ DATABASE_URL = os.getenv('DATABASE_URL')  # The connection string in the environ
 url = urlparse(DATABASE_URL)
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-z_f7g4(!(e7#d_b6l2fn$5m2ml#3wfyfl(pu8xbr^@+g$i1j9#'
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -63,9 +63,6 @@ DATABASES = {
 }
 
 
-
-
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -76,7 +73,17 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'courses',
+    'rest_framework', # this will be used for the API (i added this line and the one below)
+    'rest_framework_simplejwt.token_blacklist',
 ]
+
+# this is the default authentication class for the API (i added this)
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
