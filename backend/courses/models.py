@@ -1,7 +1,7 @@
 from django.db import models
 
 class Course(models.Model):
-    num = models.IntegerField(null=True, blank=True)
+    # num = models.IntegerField(null=True, blank=True)
     crn = models.CharField(max_length=20)
     subject = models.CharField(max_length=20)
     course = models.CharField(max_length=20)

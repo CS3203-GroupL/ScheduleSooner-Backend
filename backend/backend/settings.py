@@ -15,42 +15,20 @@ import os
 import environ
 from urllib.parse import urlparse
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
-# Initialize environment variables
+# Initialize environment 
 env = environ.Env()
-# Read the .env file (this will look for a file named .env in the root directory)
 environ.Env.read_env()
 
 DATABASE_URL = os.getenv('DATABASE_URL')  # The connection string in the environment variable
 url = urlparse(DATABASE_URL)
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS', default=['localhost'])
-
-# DATABASES = {
-#     'default': env.db('DATABASE_URL'),
-# }
-# DATABASES['default']['ENGINE'] = 'django.db.backends.postgresql' # might not be necessary
-
-# DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.postgresql",
-#         "OPTIONS": {
-#             "service": "my_service",
-#             "passfile": ".my_pgpass",
-#         },
-#     }
-# }
+# SECURITY WARNING: in prod, keep the secret key secret, don't run with debug turned on, and don't define the correct hosts!
+SECRET_KEY = env('DJANGO_SECRET_KEY')
+DEBUG = env('DJANGO_DEBUG')
+ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS')
 
 DATABASES = {
     "default": {
@@ -114,18 +92,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'backend.wsgi.application'
-
-
-# Database
-# https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
-# poopy databases thing
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
 
 DATABASES = {
     'default': env.db('DATABASE_URL'),

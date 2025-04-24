@@ -15,15 +15,18 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
+from django.http import JsonResponse
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('admin/', admin.site.urls), # came in default template
     path('api/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'), # this is the login endpoint
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'), # this is the refresh token endpoint
+    path('cs/', include('courses.urls')), # this is the endpoint for the courses API
+    path('', lambda request: JsonResponse({"message": "Welcome to the Schedule Sooner API!"})), # this is the default endpoint for the API
 ]
 
