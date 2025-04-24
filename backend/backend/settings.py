@@ -18,6 +18,8 @@ from urllib.parse import urlparse
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+
 # Initialize environment 
 env = environ.Env()
 environ.Env.read_env()
@@ -29,6 +31,9 @@ url = urlparse(DATABASE_URL)
 SECRET_KEY = env('DJANGO_SECRET_KEY')
 DEBUG = env('DJANGO_DEBUG')
 ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS')
+
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 DATABASES = {
     "default": {
