@@ -3,6 +3,7 @@ services:
     name: schedulesooner-backend
     env: python
     plan: free
+    rootDir: backend
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn backend.wsgi:application
     envVars:
@@ -10,4 +11,3 @@ services:
         value: backend.settings
       - key: PYTHON_VERSION
         value: "3.11"
-    rootDir: backend
