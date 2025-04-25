@@ -5,7 +5,9 @@ django-environ==0.12.0
 django-filter==25.1
 djangorestframework==3.16.0
 djangorestframework_simplejwt==5.5.0
+drf-yasg==1.21.10
 gunicorn==23.0.0
+inflection==0.5.1
 numexpr==2.10.1
 numpy==2.2.4
 packaging==24.2
@@ -15,9 +17,11 @@ psycopg2==2.9.9
 PyJWT==2.9.0
 python-dateutil==2.9.0.post0
 pytz==2024.1
+PyYAML==6.0.2
 setuptools==72.1.0
 six==1.17.0
 sqlparse==0.5.2
 typing_extensions==4.12.2
 tzdata==2023.3
+uritemplate==4.1.1
 wheel==0.45.1

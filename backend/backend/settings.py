@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'courses',
     'rest_framework', # this will be used for the API (i added this line and the one below)
     'rest_framework_simplejwt.token_blacklist',
+    'drf_yasg', # trying out swagger ui cause fuck whatever django's rest framework browsable api is
 ]
 
 # this is the default authentication class for the API (i added this)
@@ -65,6 +66,13 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
+    ],
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 50,
 }
 
 

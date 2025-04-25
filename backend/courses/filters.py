@@ -8,6 +8,7 @@ class CourseTimeFilter(django_filters.FilterSet):
     end_time = django_filters.TimeFilter(method='filter_by_end')
     meeting_days = django_filters.CharFilter(method='filter_meeting_days')
     instructor = django_filters.CharFilter(method='filter_by_instructor')
+    course = django_filters.CharFilter(lookup_expr='icontains')
 
     
     class Meta:
