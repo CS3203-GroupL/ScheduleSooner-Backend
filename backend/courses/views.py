@@ -19,7 +19,7 @@ class CourseListView(generics.ListAPIView):
     serializer_class = CourseSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = CourseTimeFilter
-    renderer_classes = [JSONRenderer, BrowsableAPIRenderer]
+    renderer_classes = [JSONRenderer]
     
     @swagger_auto_schema(manual_parameters=[
         openapi.Parameter('meeting_days', openapi.IN_QUERY, description="Filter by meeting days (e.g., MWF)", type=openapi.TYPE_STRING),
