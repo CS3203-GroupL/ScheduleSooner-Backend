@@ -32,8 +32,7 @@ schema_view = get_schema_view(
         description="Private API docs. You must authenticate via JWT to use them.",
     ),
     public=True,
-    permission_classes=[permissions.AllowAny],
-    authentication_classes=[],  # override for docs only
+    permission_classes=(permissions.AllowAny),
 )
 
 urlpatterns = [
@@ -42,12 +41,10 @@ urlpatterns = [
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'), # this is the refresh token endpoint
     path('cs/', include('courses.urls')), # this is the endpoint for the courses API
     path('', lambda request: JsonResponse({"message": "Welcome to the Schedule Sooner API!"})), # this is the default endpoint for the API
+    
+    # swagger ui & redoc shit
+    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    path('swagger.json', schema_view.without_ui(cache_timeout=0), name='schema-json'),
 ]
-# swagger ui & redoc shit
-if settings.DEBUG:
-    urlpatterns += [
-        path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-        path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
-        path('swagger.json', schema_view.without_ui(cache_timeout=0), name='schema-json'),
-    ]
 
