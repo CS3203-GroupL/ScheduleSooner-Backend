@@ -6,6 +6,7 @@ from .serializers import CourseSerializer
 from rest_framework import generics
 from django_filters.rest_framework import DjangoFilterBackend
 from .filters import CourseTimeFilter
+from rest_framework.renderers import JSONRenderer
 
 # Create your views here.
 
@@ -15,3 +16,4 @@ class CourseListView(generics.ListAPIView):
     serializer_class = CourseSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = CourseTimeFilter
+    renderer_classes = [JSONRenderer]
