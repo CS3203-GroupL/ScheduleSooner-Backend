@@ -65,6 +65,8 @@ INSTALLED_APPS = [
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+        
     ),
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
@@ -137,7 +139,10 @@ SWAGGER_SETTINGS = {
             'name': 'Authorization',
             'in': 'header',
             'description': 'JWT token using the Bearer scheme. Example: "Bearer <your_token>"',
-        }
+        },
+        'basic': {  # <<-- is for djagno authentication 
+            'type': 'basic'
+        },
     },
 }
 
