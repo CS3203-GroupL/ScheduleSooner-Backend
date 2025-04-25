@@ -130,6 +130,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 SWAGGER_SETTINGS = {
+    'USE_SESSION_AUTH': False,
     'SECURITY_DEFINITIONS': {
         'Bearer': {
             'type': 'apiKey',
@@ -137,7 +138,7 @@ SWAGGER_SETTINGS = {
             'in': 'header',
             'description': 'JWT token using the Bearer scheme. Example: "Bearer <your_token>"',
         }
-    }
+    },
 }
 
 
