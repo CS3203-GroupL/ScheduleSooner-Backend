@@ -32,7 +32,7 @@ schema_view = get_schema_view(
         description="Private API docs. You must authenticate via JWT to use them.",
     ),
     public=True,
-    permission_classes=(permissions.AllowAny),
+    permission_classes=(permissions.AllowAny,),
 )
 
 urlpatterns = [
