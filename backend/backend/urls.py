@@ -29,10 +29,11 @@ schema_view = get_schema_view(
     openapi.Info(
         title="Schedule Sooner API",
         default_version='v1',
-        description="Test and explore the Schedule Sooner API here.",
+        description="Private API docs. You must authenticate via JWT to use them.",
     ),
     public=True,
-    permission_classes=(permissions.AllowAny,),
+    permission_classes=[permissions.AllowAny],
+    authentication_classes=[],  # override for docs only
 )
 
 urlpatterns = [
