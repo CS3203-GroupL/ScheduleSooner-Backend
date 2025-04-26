@@ -1,3 +1,5 @@
+import os
+
 from django.shortcuts import render
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -12,6 +14,10 @@ from drf_yasg import openapi
 from .models import Course
 from .serializers import CourseSerializer
 from .filters import CourseTimeFilter
+
+# For storing user input temporarily
+SAVED_INPUT = ""
+
 
 # Handles GET requests for listing and filtering courses
 class CourseListView(generics.ListAPIView):
@@ -29,13 +35,16 @@ class CourseListView(generics.ListAPIView):
         openapi.Parameter('course', openapi.IN_QUERY, description="Filter by course number (e.g. 2413)", type=openapi.TYPE_STRING),
     ])
     
+    
     def get(self, request, *args, **kwargs):
         if request.accepted_renderer.format == 'html':
             # If HTML is requested, serve as JSON to avoid missing template
             request.accepted_renderer = JSONRenderer()
         return super().get(request, *args, **kwargs)
     
+    
 # Handles GET requests for a single course
 class CourseDetailView(generics.RetrieveAPIView):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
+    
