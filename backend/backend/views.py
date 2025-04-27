@@ -1,10 +1,13 @@
+import os
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.permissions import AllowAny
-from django.http import FileResponse
-import os
+from rest_framework import status
 
+from django.http import FileResponse
+from django.contrib.auth.models import User
 
 # POST and GET User Input
 class UserInputView(APIView):
@@ -55,3 +58,18 @@ class FileDownloadView(APIView):
             return Response({"error": "File not found"}, status=404)
 
         return FileResponse(open(filepath, 'rb'), as_attachment=True, filename=filename)
+    
+# User Registration
+class RegisterView(APIView):
+    def post(self, request):
+        username = request.data.get('username')
+        password = request.data.get('password')
+
+        if not username or not password:
+            return Response({"error": "Username and password required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if User.objects.filter(username=username).exists():
+            return Response({"error": "Username already exists."}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = User.objects.create_user(username=username, password=password)
+        return Response({"message": "User created successfully."}, status=status.HTTP_201_CREATED)
