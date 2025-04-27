@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 import os
+import sys
 import environ
 from urllib.parse import urlparse
 
@@ -107,6 +108,28 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'backend.wsgi.application'
+
+# to switch between test and prod databases
+# if 'test' in sys.argv:
+#     DATABASE_URL = os.getenv('DATABASE_URL_TEST')
+# else:
+#     DATABASE_URL = os.getenv('DATABASE_URL')
+
+# url = urlparse(DATABASE_URL)
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': url.path[1:],  # Remove leading /
+#         'USER': url.username,
+#         'PASSWORD': url.password,
+#         'HOST': url.hostname,
+#         'PORT': url.port,
+#         'OPTIONS': {
+#             'sslmode': 'require',
+#         },
+#     }
+# }
 
 DATABASES = {
     'default': env.db('DATABASE_URL'),
