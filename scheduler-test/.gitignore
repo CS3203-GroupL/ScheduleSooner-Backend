@@ -1,0 +1,18 @@
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environment files
+.env
+
+# Data files
+*.json
+saved_courses/
+
+# Model checkpoints (TinyLlama caches)
+*.bin
+*.safetensors
+hf_cache/
+transformers_cache/
