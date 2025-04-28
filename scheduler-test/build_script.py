@@ -4,9 +4,18 @@ import itertools
 import copy
 import re
 import requests
+import unittest
+import os
 
 def load_courses(filename="all_unique_courses.json"):
-    with open(filename, "r") as f:
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    outputs_dir = os.path.join(base_dir, "outputs")
+    filepath = os.path.join(outputs_dir, filename)
+
+    # Make sure outputs/ exists
+    os.makedirs(outputs_dir, exist_ok=True)
+
+    with open(filepath, "r") as f:
         courses = json.load(f)
     return courses
 
@@ -73,9 +82,14 @@ def build_schedule(courses, max_classes=5):
     return selected
 
 def save_schedule(schedule, filename="final_schedule.json"):
-    with open(filename, "w") as f:
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    outputs_dir = os.path.join(base_dir, "outputs")
+    os.makedirs(outputs_dir, exist_ok=True)
+
+    filepath = os.path.join(outputs_dir, filename)
+    with open(filepath, "w") as f:
         json.dump(schedule, f, indent=2)
-    print(f"💾 Saved final schedule to {filename}")
+    print(f"💾 Saved final schedule to {filepath}")
 
 
 def main():
@@ -89,9 +103,25 @@ def main():
         print("⚠️ Could not build any valid schedule.")
     else:
         save_schedule(schedule)
-    
+
+    def run_tests():
+        # Always make sure we're in the script's folder
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        os.chdir(base_dir)  # <- this is important!
+
+        loader = unittest.TestLoader()
+        suite = loader.discover('tests')  # relative to the script location now
+        runner = unittest.TextTestRunner()
+        result = runner.run(suite)
+        if not result.wasSuccessful():
+            exit(1)
+
+    run_tests()
+
     url = 'https://schedulesooner-backend.onrender.com/api/upload-file/'
-    file_path = 'final_schedule.json'  # Path to the file on your machine
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    outputs_dir = os.path.join(base_dir, 'outputs')
+    file_path = os.path.join(outputs_dir, 'final_schedule.json')
 
     with open(file_path, 'rb') as file:
         files = {'file': (file_path, file)}
