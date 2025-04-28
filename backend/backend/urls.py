@@ -25,6 +25,11 @@ from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
+from courses.views import CourseListView
+
+from backend.views import UserInputView, FileUploadView, FileDownloadView
+from backend.views import RegisterView
+
 schema_view = get_schema_view(
     openapi.Info(
         title="Schedule Sooner API",
@@ -36,15 +41,28 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
-    path('admin/', admin.site.urls), # came in default template
-    path('api/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'), # this is the login endpoint
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'), # this is the refresh token endpoint
-    path('cs/', include('courses.urls')), # this is the endpoint for the courses API
-    path('', lambda request: JsonResponse({"message": "Welcome to the Schedule Sooner API!"})), # this is the default endpoint for the API
+    # template 
+    path('admin/', admin.site.urls),
+    path('api/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    
+    # endpoint for courses API
+    path('cs/', include('courses.urls')), 
+    
+    # NEW user input and file APIs
+    path('api/user-input/', UserInputView.as_view(), name='user-input'),
+    path('api/upload-file/', FileUploadView.as_view(), name='upload-file'),
+    path('api/download-file/', FileDownloadView.as_view(), name='download-file'),
     
     # swagger ui & redoc shit
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
     path('swagger.json', schema_view.without_ui(cache_timeout=0), name='schema-json'),
+    
+    # user registration API
+    path('api/register/', RegisterView.as_view(), name='register'),
+    
+     # default endpoint for API
+    path('', lambda request: JsonResponse({"message": "Welcome to the Schedule Sooner API!"})),
 ]
 

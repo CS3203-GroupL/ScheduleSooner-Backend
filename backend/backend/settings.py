@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 import os
+import sys
 import environ
 from urllib.parse import urlparse
 
@@ -59,12 +60,15 @@ INSTALLED_APPS = [
     'rest_framework', # this will be used for the API (i added this line and the one below)
     'rest_framework_simplejwt.token_blacklist',
     'drf_yasg', # trying out swagger ui cause fuck whatever django's rest framework browsable api is
+    'corsheaders', # for frontend
 ]
 
 # this is the default authentication class for the API (i added this)
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+        
     ),
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
@@ -77,6 +81,7 @@ REST_FRAMEWORK = {
 
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',  # very top
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -105,6 +110,28 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'backend.wsgi.application'
+
+# to switch between test and prod databases
+# if 'test' in sys.argv:
+#     DATABASE_URL = os.getenv('DATABASE_URL_TEST')
+# else:
+#     DATABASE_URL = os.getenv('DATABASE_URL')
+
+# url = urlparse(DATABASE_URL)
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': url.path[1:],  # Remove leading /
+#         'USER': url.username,
+#         'PASSWORD': url.password,
+#         'HOST': url.hostname,
+#         'PORT': url.port,
+#         'OPTIONS': {
+#             'sslmode': 'require',
+#         },
+#     }
+# }
 
 DATABASES = {
     'default': env.db('DATABASE_URL'),
@@ -137,9 +164,19 @@ SWAGGER_SETTINGS = {
             'name': 'Authorization',
             'in': 'header',
             'description': 'JWT token using the Bearer scheme. Example: "Bearer <your_token>"',
-        }
+        },
+        'basic': {  # <<-- is for djagno authentication 
+            'type': 'basic'
+        },
     },
 }
+
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:5500",   # local frontend
+#     "https://your-frontend-production-url.com"  # later when deployed
+# ]
+
+CORS_ALLOW_ALL_ORIGINS = True # cause fuck it, we dont care about security right now
 
 
 # Internationalization
