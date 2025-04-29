@@ -29,6 +29,7 @@ from courses.views import CourseListView
 
 from backend.views import UserInputView, FileUploadView, FileDownloadView
 from backend.views import RegisterView
+from backend.views import csrf  # import CSRF view
 
 schema_view = get_schema_view(
     openapi.Info(
