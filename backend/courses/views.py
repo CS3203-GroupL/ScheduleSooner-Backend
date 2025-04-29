@@ -14,11 +14,6 @@ from drf_yasg import openapi
 from .models import Course
 from .serializers import CourseSerializer
 from .filters import CourseTimeFilter
-from django.middleware.csrf import get_token
-from django.http import JsonResponse
-
-def csrf(request):
-    return JsonResponse({'csrfToken': get_token(request)})
 
 # For storing user input temporarily
 SAVED_INPUT = ""
