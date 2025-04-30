@@ -1,4 +1,4 @@
-# === subset_fixed_v2.py ===
+# === subset.py ===
 
 import json
 import os
@@ -6,11 +6,8 @@ import re
 import requests
 import torch
 from dotenv import load_dotenv
-
 import build_script
-
 from transformers import AutoTokenizer, AutoModelForCausalLM
-from datetime import datetime
 
 # === Setup absolute paths ===
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -32,10 +29,14 @@ model = AutoModelForCausalLM.from_pretrained(
 ).eval()
 
 # === Helper functions ===
+
 def get_courses(filter_type: str, filter_value: str):
     load_dotenv()
     login_url = "https://schedulesooner-backend.onrender.com/api/login/"
-    login_data = {"username": os.getenv("SCHEDULE_USERNAME"), "password": os.getenv("SCHEDULE_PASSWORD")}
+    login_data = {
+        "username": os.getenv("SCHEDULE_USERNAME"),
+        "password": os.getenv("SCHEDULE_PASSWORD")
+    }
 
     res = requests.post(login_url, json=login_data)
     if res.status_code != 200:
@@ -46,7 +47,11 @@ def get_courses(filter_type: str, filter_value: str):
         raise Exception(f"Unexpected login response: {token_data}")
 
     headers = {"Authorization": f"Bearer {token_data['access']}"}
-    res = requests.get("https://schedulesooner-backend.onrender.com/cs/courses/", headers=headers, params={filter_type: filter_value})
+    res = requests.get(
+        "https://schedulesooner-backend.onrender.com/cs/courses/",
+        headers=headers,
+        params={filter_type: filter_value}
+    )
 
     if res.status_code != 200:
         raise Exception(f"Failed to fetch courses: {res.status_code} {res.text}")
@@ -57,7 +62,6 @@ def regex_parse_preferences(user_input, courses_data):
     parsed = {}
     course_codes = re.findall(r'\bCS\s*\d{4}\b', user_input, flags=re.IGNORECASE)
     course_codes = [code.replace(' ', '') for code in course_codes]
-
     if course_codes:
         parsed["courses"] = [{"course": code} for code in course_codes]
 
@@ -83,19 +87,18 @@ def regex_parse_preferences(user_input, courses_data):
     return parsed
 
 def parse_preferences_with_llm(user_input):
-    few_shot = """
-You are an assistant that extracts course preferences from user input.
-✅ Only extract fields that are explicitly mentioned.
-✅ DO NOT guess missing fields like meeting_time or instructor unless stated.
-"""
-    prompt = f"""{few_shot}\n\nInput: \"{user_input}\"\nOutput:\n"""
+    few_shot = (
+        "You are an assistant that extracts course preferences from user input.\n"
+        "✅ Only extract fields that are explicitly mentioned.\n"
+        "✅ DO NOT guess missing fields like meeting_time or instructor unless stated.\n"
+    )
+    prompt = f"{few_shot}\n\nInput: \"{user_input}\"\nOutput:\n"
     inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
 
     with torch.no_grad():
         outputs = model.generate(**inputs, max_new_tokens=150, pad_token_id=tokenizer.eos_token_id)
 
     decoded = tokenizer.decode(outputs[0], skip_special_tokens=True).strip()
-
     try:
         json_blocks = re.findall(r"{.*?}", decoded, re.DOTALL)
         last_json = json_blocks[-1]
@@ -111,63 +114,6 @@ def pre_split_user_input(user_input):
         return [user_input.strip()]
     prefix = pieces[0].strip()
     return [f"{prefix} and {suffix.strip()}" for suffix in pieces[1:]]
-
-# === Main Program ===
-with open(os.path.join(OUTPUTS_DIR, "user_input.json"), "r") as f:
-    user_input = json.load(f).get("user_input")
-
-courses_data = get_courses("subject", "C S")
-
-with open(os.path.join(OUTPUTS_DIR, "courses_output.json"), "w") as f:
-    json.dump(courses_data, f, indent=2)
-
-split_inputs = pre_split_user_input(user_input)
-parsed_preferences = {}
-
-for sub_input in split_inputs:
-    parsed_piece = regex_parse_preferences(sub_input, courses_data)
-    for key, value in parsed_piece.items():
-        if key not in parsed_preferences:
-            parsed_preferences[key] = value
-        else:
-            if isinstance(parsed_preferences[key], list) and isinstance(value, list):
-                parsed_preferences[key].extend(value)
-            elif isinstance(parsed_preferences[key], str) and isinstance(value, str):
-                parsed_preferences[key] = f"{parsed_preferences[key]} and {value}"
-
-if not parsed_preferences:
-    exit()
-
-validated_preferences = {}
-
-for course_item in parsed_preferences.get("courses", []):
-    if "course" in course_item:
-        course_number = re.sub(r'[^0-9]', '', course_item["course"])
-        matched = next((entry for entry in courses_data if entry.get("course") == course_number), None)
-        if matched:
-            validated_preferences.setdefault("courses", []).append({"course": course_number})
-    if "title" in course_item:
-        matched = next((entry for entry in courses_data if entry.get("title", "").lower() == course_item["title"].lower()), None)
-        if matched:
-            validated_preferences.setdefault("courses", []).append({"course": matched.get("course")})
-
-for key in ["instructor", "meeting_days", "meeting_time"]:
-    if key in parsed_preferences:
-        validated_preferences[key] = parsed_preferences[key]
-
-for filter_type, filter_value in validated_preferences.items():
-    if filter_type == "courses":
-        for course in filter_value:
-            course_number = course["course"]
-            safe_val = re.sub(r'\W+', '_', course_number)
-            course_results = get_courses("course", course_number)
-            with open(os.path.join(SAVED_COURSES_DIR, f"course_{safe_val}.json"), "w") as f:
-                json.dump(course_results, f, indent=2)
-    else:
-        safe_val = re.sub(r'\W+', '_', str(filter_value))
-        results = get_courses(filter_type, filter_value)
-        with open(os.path.join(SAVED_COURSES_DIR, f"{filter_type}_{safe_val}.json"), "w") as f:
-            json.dump(results, f, indent=2)
 
 def merge_saved_courses():
     all_courses = []
@@ -196,10 +142,88 @@ def merge_saved_courses():
     for filename in os.listdir(SAVED_COURSES_DIR):
         os.remove(os.path.join(SAVED_COURSES_DIR, filename))
 
-merge_saved_courses()
+# === Entry point ===
+def main():
+    print("🚀 Running subset.main()...")
 
-build_script.main()
+    with open(os.path.join(OUTPUTS_DIR, "user_input.json"), "r") as f:
+        user_input = json.load(f).get("user_input")
 
-user_input_path = os.path.join(OUTPUTS_DIR, "user_input.json")
-if os.path.exists(user_input_path):
-    os.remove(user_input_path)
+    courses_data = get_courses("subject", "C S")
+
+    with open(os.path.join(OUTPUTS_DIR, "courses_output.json"), "w") as f:
+        json.dump(courses_data, f, indent=2)
+
+    split_inputs = pre_split_user_input(user_input)
+    parsed_preferences = {}
+
+    print("step 1 done")
+
+    for sub_input in split_inputs:
+        parsed_piece = regex_parse_preferences(sub_input, courses_data)
+        for key, value in parsed_piece.items():
+            if key not in parsed_preferences:
+                parsed_preferences[key] = value
+            else:
+                if isinstance(parsed_preferences[key], list) and isinstance(value, list):
+                    parsed_preferences[key].extend(value)
+                elif isinstance(parsed_preferences[key], str) and isinstance(value, str):
+                    parsed_preferences[key] = f"{parsed_preferences[key]} and {value}"
+
+    if not parsed_preferences:
+        print("❌ No valid preferences parsed.")
+
+        error_output_path = os.path.join(OUTPUTS_DIR, "final_schedule.json")
+        with open(error_output_path, "w") as f:
+            json.dump({
+                "title": "No valid preferences could be parsed from your input."
+            }, f, indent=2)
+
+
+        return
+
+    print("step 2 done")
+
+    validated_preferences = {}
+    for course_item in parsed_preferences.get("courses", []):
+        if "course" in course_item:
+            course_number = re.sub(r'[^0-9]', '', course_item["course"])
+            matched = next((entry for entry in courses_data if entry.get("course") == course_number), None)
+            if matched:
+                validated_preferences.setdefault("courses", []).append({"course": course_number})
+        if "title" in course_item:
+            matched = next((entry for entry in courses_data if entry.get("title", "").lower() == course_item["title"].lower()), None)
+            if matched:
+                validated_preferences.setdefault("courses", []).append({"course": matched.get("course")})
+
+    for key in ["instructor", "meeting_days", "meeting_time"]:
+        if key in parsed_preferences:
+            validated_preferences[key] = parsed_preferences[key]
+
+    print("step 2.5 done")
+
+    for filter_type, filter_value in validated_preferences.items():
+        if filter_type == "courses":
+            for course in filter_value:
+                course_number = course["course"]
+                safe_val = re.sub(r'\W+', '_', course_number)
+                course_results = get_courses("course", course_number)
+                with open(os.path.join(SAVED_COURSES_DIR, f"course_{safe_val}.json"), "w") as f:
+                    json.dump(course_results, f, indent=2)
+        else:
+            safe_val = re.sub(r'\W+', '_', str(filter_value))
+            results = get_courses(filter_type, filter_value)
+            with open(os.path.join(SAVED_COURSES_DIR, f"{filter_type}_{safe_val}.json"), "w") as f:
+                json.dump(results, f, indent=2)
+    print("step 3 done")
+    merge_saved_courses()
+    print("step 4 done")
+    build_script.main()
+    print("step 5 done")
+    user_input_path = os.path.join(OUTPUTS_DIR, "user_input.json")
+    if os.path.exists(user_input_path):
+        os.remove(user_input_path)
+        print("🧹 user_input.json deleted")
+
+if __name__ == "__main__":
+    main()
