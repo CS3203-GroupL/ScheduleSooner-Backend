@@ -1,4 +1,6 @@
 import os
+from django.http import JsonResponse
+from django.conf import settings
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -8,6 +10,13 @@ from rest_framework import status
 
 from django.http import FileResponse
 from django.contrib.auth.models import User
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.http import StreamingHttpResponse
+
+
+import subprocess
+import json
 
 # POST and GET User Input
 class UserInputView(APIView):
@@ -73,3 +82,83 @@ class RegisterView(APIView):
 
         user = User.objects.create_user(username=username, password=password)
         return Response({"message": "User created successfully."}, status=status.HTTP_201_CREATED)
+    
+BASE_DIR = settings.BASE_DIR
+OUTPUTS_DIR = os.path.join(BASE_DIR, "scheduler-test", "outputs")
+SCHEDULER_TEST_DIR = os.path.join(BASE_DIR, "scheduler-test")
+
+@csrf_exempt
+def handle_user_input(request):
+    print("🚨 handle_user_input was called")
+    
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST request required'}, status=400)
+
+    try:
+        body = json.loads(request.body)
+        user_query = body.get("query")
+        if not user_query:
+            return JsonResponse({'error': 'Missing query'}, status=400)
+
+        os.makedirs(OUTPUTS_DIR, exist_ok=True)
+        input_path = os.path.join(OUTPUTS_DIR, 'user_input.json')
+        with open(input_path, "w") as f:
+            json.dump({"user_input": user_query}, f)
+
+            input_path = os.path.join(OUTPUTS_DIR, 'user_input.json')
+    
+        final_schedule_path = os.path.join(OUTPUTS_DIR, "final_schedule.json")
+
+        # Check before
+        print("🧐 Exists before deletion?", os.path.exists(final_schedule_path))
+
+        if os.path.exists(final_schedule_path):
+            try:
+                os.remove(final_schedule_path)
+                print("🗑️ Deleted old final_schedule.json")
+            except Exception as e:
+                print("⚠️ Could not delete old final_schedule.json:", e)
+
+        # Check after
+        print("✅ Exists after deletion?", os.path.exists(final_schedule_path))
+
+        subprocess.Popen(["python", "subset.py"], cwd=SCHEDULER_TEST_DIR)
+
+        return JsonResponse({"status": "processing started"})
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+def download_file(request):
+    filename = request.GET.get("filename")
+    if not filename:
+        return JsonResponse({"error": "No filename provided"}, status=400)
+
+    file_path = os.path.join(OUTPUTS_DIR, filename)  # ✅ define it here
+    print(f"🧭 Resolved file path:", file_path)
+
+    if not os.path.exists(file_path):
+        return JsonResponse({"error": "File not found"}, status=404)
+
+    with open(file_path, "r") as f:
+        data = json.load(f)
+
+    # ✅ only now can you overwrite it
+    try:
+        with open(file_path, "w") as f:
+            f.write("[]")
+        print(f"🧨 Overwrote file instead of deleting: {file_path}")
+    except Exception as e:
+        print(f"❌ Failed to overwrite file: {file_path} — {e}")
+
+    return JsonResponse(data, safe=False)
+
+    def cleanup():
+        try:
+            os.remove(file_path)
+            print(f"🗑️ Deleted file: {file_path}")
+        except Exception as e:
+            print(f"❌ Failed to delete file: {file_path} — {e}")
+
+    response.close = lambda *args, **kwargs: (cleanup(), StreamingHttpResponse.close(response, *args, **kwargs))
+    return response

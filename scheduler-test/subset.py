@@ -113,9 +113,8 @@ def pre_split_user_input(user_input):
     return [f"{prefix} and {suffix.strip()}" for suffix in pieces[1:]]
 
 # === Main Program ===
-url = 'https://schedulesooner-backend.onrender.com/api/user-input/'
-response = requests.get(url)
-user_input = response.json().get("user_input")
+with open(os.path.join(OUTPUTS_DIR, "user_input.json"), "r") as f:
+    user_input = json.load(f).get("user_input")
 
 courses_data = get_courses("subject", "C S")
 
@@ -200,3 +199,7 @@ def merge_saved_courses():
 merge_saved_courses()
 
 build_script.main()
+
+user_input_path = os.path.join(OUTPUTS_DIR, "user_input.json")
+if os.path.exists(user_input_path):
+    os.remove(user_input_path)
