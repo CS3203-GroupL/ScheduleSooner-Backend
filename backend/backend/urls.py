@@ -31,6 +31,9 @@ from backend.views import UserInputView, FileUploadView, FileDownloadView
 from backend.views import RegisterView
 #from backend.views import csrf  # import CSRF view
 
+from django.urls import path
+from backend.views import handle_user_input, download_file
+
 schema_view = get_schema_view(
     openapi.Info(
         title="Schedule Sooner API",
@@ -51,7 +54,7 @@ urlpatterns = [
     path('cs/', include('courses.urls')), 
     
     # NEW user input and file APIs
-    path('api/user-input/', UserInputView.as_view(), name='user-input'),
+    #path('api/user-input/', UserInputView.as_view(), name='user-input'),
     path('api/upload-file/', FileUploadView.as_view(), name='upload-file'),
     path('api/download-file/', FileDownloadView.as_view(), name='download-file'),
     
@@ -65,5 +68,9 @@ urlpatterns = [
     
      # default endpoint for API
     path('', lambda request: JsonResponse({"message": "Welcome to the Schedule Sooner API!"})),
+
+    # endpoint to user-input
+    path('api/user-input/', handle_user_input),
+    path('api/download-file', download_file),  # <== NO trailing slash here
 ]
 
