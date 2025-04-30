@@ -134,16 +134,24 @@ def download_file(request):
     if not filename:
         return JsonResponse({"error": "No filename provided"}, status=400)
 
-    file_path = os.path.join(OUTPUTS_DIR, filename)
+    file_path = os.path.join(OUTPUTS_DIR, filename)  # ✅ define it here
+    print(f"🧭 Resolved file path:", file_path)
+
     if not os.path.exists(file_path):
         return JsonResponse({"error": "File not found"}, status=404)
 
     with open(file_path, "r") as f:
-        data = f.read()
+        data = json.load(f)
 
-    # Wrap the response so deletion happens only after it's sent
-    response = StreamingHttpResponse(data, content_type="application/json")
-    response["Content-Disposition"] = f"inline; filename={filename}"
+    # ✅ only now can you overwrite it
+    try:
+        with open(file_path, "w") as f:
+            f.write("[]")
+        print(f"🧨 Overwrote file instead of deleting: {file_path}")
+    except Exception as e:
+        print(f"❌ Failed to overwrite file: {file_path} — {e}")
+
+    return JsonResponse(data, safe=False)
 
     def cleanup():
         try:
