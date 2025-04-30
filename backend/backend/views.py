@@ -89,8 +89,6 @@ SCHEDULER_TEST_DIR = os.path.join(BASE_DIR, "scheduler-test")
 
 @csrf_exempt
 def handle_user_input(request):
-    print("🚨 handle_user_input was called")
-    
     if request.method != 'POST':
         return JsonResponse({'error': 'POST request required'}, status=400)
 
@@ -105,23 +103,16 @@ def handle_user_input(request):
         with open(input_path, "w") as f:
             json.dump({"user_input": user_query}, f)
 
-            input_path = os.path.join(OUTPUTS_DIR, 'user_input.json')
-    
+        # Clear old schedule if it exists
         final_schedule_path = os.path.join(OUTPUTS_DIR, "final_schedule.json")
-
-        # Check before
-        print("🧐 Exists before deletion?", os.path.exists(final_schedule_path))
-
         if os.path.exists(final_schedule_path):
             try:
                 os.remove(final_schedule_path)
-                print("🗑️ Deleted old final_schedule.json")
+                print("🗑️ Old final_schedule.json deleted before processing")
             except Exception as e:
                 print("⚠️ Could not delete old final_schedule.json:", e)
 
-        # Check after
-        print("✅ Exists after deletion?", os.path.exists(final_schedule_path))
-
+        # Start schedule generation
         subprocess.Popen(["python", "subset.py"], cwd=SCHEDULER_TEST_DIR)
 
         return JsonResponse({"status": "processing started"})
@@ -134,31 +125,24 @@ def download_file(request):
     if not filename:
         return JsonResponse({"error": "No filename provided"}, status=400)
 
-    file_path = os.path.join(OUTPUTS_DIR, filename)  # ✅ define it here
+    file_path = os.path.join(OUTPUTS_DIR, filename)
     print(f"🧭 Resolved file path:", file_path)
 
     if not os.path.exists(file_path):
         return JsonResponse({"error": "File not found"}, status=404)
 
-    with open(file_path, "r") as f:
-        data = json.load(f)
+    try:
+        with open(file_path, "r") as f:
+            data = json.load(f)
+    except Exception as e:
+        return JsonResponse({"error": f"Could not read file: {str(e)}"}, status=500)
 
-    # ✅ only now can you overwrite it
+    # Clear the file after reading
     try:
         with open(file_path, "w") as f:
             f.write("[]")
-        print(f"🧨 Overwrote file instead of deleting: {file_path}")
+        print(f"🧨 Overwrote file after sending: {file_path}")
     except Exception as e:
         print(f"❌ Failed to overwrite file: {file_path} — {e}")
 
     return JsonResponse(data, safe=False)
-
-    def cleanup():
-        try:
-            os.remove(file_path)
-            print(f"🗑️ Deleted file: {file_path}")
-        except Exception as e:
-            print(f"❌ Failed to delete file: {file_path} — {e}")
-
-    response.close = lambda *args, **kwargs: (cleanup(), StreamingHttpResponse.close(response, *args, **kwargs))
-    return response
