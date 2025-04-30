@@ -112,22 +112,26 @@ def handle_user_input(request):
             except Exception as e:
                 print("⚠️ Could not delete old final_schedule.json:", e)
 
-        # Start schedule generation
-        subprocess.Popen(["python", "subset.py"], cwd=SCHEDULER_TEST_DIR)
+        # ✅ Run schedule generation inline (Render-safe)
+        import sys
+        if SCHEDULER_TEST_DIR not in sys.path:
+            sys.path.append(SCHEDULER_TEST_DIR)
+        import subset
 
-        return JsonResponse({"status": "processing started"})
+        subset.main()
+
+        return JsonResponse({"status": "processing complete"})
 
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
+@csrf_exempt
 def download_file(request):
     filename = request.GET.get("filename")
     if not filename:
         return JsonResponse({"error": "No filename provided"}, status=400)
 
     file_path = os.path.join(OUTPUTS_DIR, filename)
-    print(f"🧭 Resolved file path:", file_path)
-
     if not os.path.exists(file_path):
         return JsonResponse({"error": "File not found"}, status=404)
 
@@ -137,12 +141,11 @@ def download_file(request):
     except Exception as e:
         return JsonResponse({"error": f"Could not read file: {str(e)}"}, status=500)
 
-    # Clear the file after reading
+    # ✅ Delete after reading
     try:
-        with open(file_path, "w") as f:
-            f.write("[]")
-        print(f"🧨 Overwrote file after sending: {file_path}")
+        os.remove(file_path)
+        print(f"🗑️ Deleted {filename} after sending it")
     except Exception as e:
-        print(f"❌ Failed to overwrite file: {file_path} — {e}")
+        print(f"⚠️ Could not delete {filename}: {e}")
 
     return JsonResponse(data, safe=False)
